@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>For Nowrin ❤️</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      height: 100vh;
+      width: 100vw;
+      background: radial-gradient(ellipse at bottom, #ff9a9e, #fad0c4);
+      background-size: 400% 400%;
+      animation: gradientShift 15s ease infinite;
+      font-family: 'Pacifico', cursive;
+      color: white;
+    }
+
+    @keyframes gradientShift {
+      0% {background-position: 0% 50%;}
+      50% {background-position: 100% 50%;}
+      100% {background-position: 0% 50%;}
+    }
+
+    canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: 1;
+    }
+
+    #messageContainer {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+      z-index: 3;
+    }
+
+    h1 {
+      font-size: 3rem;
+      margin: 0;
+      letter-spacing: 2px;
+      text-shadow: 0 0 20px #ff3e6c, 0 0 40px #ff6f91;
+      animation: glow 2s infinite alternate;
+    }
+
+    @keyframes glow {
+      from { text-shadow: 0 0 10px #ff6f91; }
+      to { text-shadow: 0 0 30px #ff3e6c; }
+    }
+
+    .typedMessage {
+      margin-top: 20px;
+      font-size: 1.8rem;
+      min-height: 50px;
+      letter-spacing: 1px;
+      animation: blink .8s step-end infinite;
+      white-space: pre-wrap;  /* FIXED SPACING */
+      border-right: 3px solid white;
+    }
+
+    @keyframes blink {
+      from, to { border-color: transparent; }
+      50% { border-color: white; }
+    }
+
+    .floating {
+      position: absolute;
+      pointer-events: none;
+      z-index: 2;
+      animation: float 10s linear infinite;
+      opacity: 0.7;
+    }
+
+    @keyframes float {
+      0% { transform: translateY(0) rotate(0); opacity: 1; }
+      100% { transform: translateY(-120vh) rotate(360deg); opacity: 0; }
+    }
+  </style>
+</head>
+
+<body>
+
+<!-- FIREWORKS -->
+<canvas id="fireworksCanvas"></canvas>
+
+<!-- MESSAGES -->
+<div id="messageContainer">
+  <h1>I ❤️ You, Nowrin</h1>
+  <div id="typedMessage" class="typedMessage"></div>
+</div>
+
+<script>
+  // --- FLOATING HEARTS + FLOWERS ---
+  function createFloating() {
+    const el = document.createElement('div');
+    el.classList.add('floating');
+    el.innerText = Math.random() > 0.5 ? '🌸' : '💖';
+    el.style.left = Math.random() * 100 + 'vw';
+    el.style.top = '100vh';
+    el.style.animationDuration = (Math.random() * 5 + 5) + 's';
+    el.style.fontSize = (Math.random() * 20 + 20) + 'px';
+    document.body.appendChild(el);
+
+    setTimeout(() => el.remove(), 11000);
+  }
+  setInterval(createFloating, 300);
+
+  // --- FIREWORKS (REALISTIC) ---
+  const canvas = document.getElementById('fireworksCanvas');
+  const ctx = canvas.getContext('2d');
+  let w = canvas.width = window.innerWidth;
+  let h = canvas.height = window.innerHeight;
+  window.addEventListener('resize', () => {
+    w = canvas.width = window.innerWidth;
+    h = canvas.height = window.innerHeight;
+  });
+
+  const fireworks = [];
+  const particles = [];
+
+  class Firework {
+    constructor() {
+      this.x = Math.random() * w;
+      this.y = h;
+      this.targetY = Math.random() * h / 2;
+      this.speed = Math.random() * 4 + 4;
+      this.color = `hsl(${Math.random() * 360}, 100%, 60%)`;
+    }
+    update() {
+      this.y -= this.speed;
+      if (this.y <= this.targetY) {
+        this.explode();
+        return false;
+      }
+      return true;
+    }
+    explode() {
+      const count = Math.random() * 30 + 50;
+      for (let i = 0; i < count; i++) {
+        particles.push(new Particle(this.x, this.y, this.color));
+      }
+    }
+    draw() {
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, 3, 0, Math.PI * 2);
+      ctx.fillStyle = this.color;
+      ctx.fill();
+    }
+  }
+
+  class Particle {
+    constructor(x, y, color) {
+      this.x = x;
+      this.y = y;
+      this.speedX = (Math.random() - 0.5) * 10;
+      this.speedY = (Math.random() - 0.5) * 10;
+      this.gravity = 0.1;
+      this.life = 100;
+      this.color = color;
+    }
+    update() {
+      this.x += this.speedX;
+      this.y += this.speedY;
+      this.speedY += this.gravity;
+      this.life--;
+      return this.life > 0;
+    }
+    draw() {
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, 2, 0, Math.PI * 2);
+      ctx.fillStyle = this.color;
+      ctx.globalAlpha = this.life / 100;
+      ctx.fill();
+      ctx.globalAlpha = 1;
+    }
+  }
+
+  function animate() {
+    ctx.fillStyle = "rgba(0,0,0,0.2)";
+    ctx.fillRect(0, 0, w, h);
+
+    if (Math.random() < 0.05) fireworks.push(new Firework());
+
+    fireworks.forEach((fw, i) => {
+      if (!fw.update()) fireworks.splice(i, 1);
+      fw.draw();
+    });
+
+    particles.forEach((p, i) => {
+      if (!p.update()) particles.splice(i, 1);
+      p.draw();
+    });
+
+    requestAnimationFrame(animate);
+  }
+  animate();
+
+  // --- TYPEWRITER MESSAGE FIXED! ---
+  const messages = [
+    "You are the spark in my life ✨",
+    "The magic in my every day 💖",
+    "Forever and always, Fuck u Nowrin! 💕"
+    
+  ];
+
+  let msgIndex = 0;
+  const msgContainer = document.getElementById('typedMessage');
+
+  function showNextMessage() {
+    if (msgIndex >= messages.length) msgIndex = 0;
+    msgContainer.innerText = "";
+    let letters = messages[msgIndex].split('');
+    letters.forEach((letter, i) => {
+      setTimeout(() => {
+        msgContainer.innerText += letter;
+      }, i * 100);
+    });
+    msgIndex++;
+    setTimeout(showNextMessage, letters.length * 100 + 2500);
+  }
+
+  showNextMessage();
+</script>
+
+</body>
+</html>
